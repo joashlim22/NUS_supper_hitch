@@ -9,7 +9,7 @@ import requests
 
 nest_asyncio.apply()
 
-TOKEN: Final = '7239673940:AAFNjd09l_lAM-mMDott9YziiQBgIYJzR9E' # NEVER SHARE THIS PUBLICLY
+TOKEN: Final = '' # NEVER SHARE THIS PUBLICLY
 BOT_USER: Final = 'SupperHitch_Bot'
 
 # List of Food Stores
@@ -52,7 +52,7 @@ async def stores(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(text="Which menu would you like to view?", reply_markup=reply_markup)
 
 #helper functions
-penis penis penis
+
 
 
 #running the shit
