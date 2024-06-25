@@ -52,7 +52,7 @@ async def stores(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(text="Which menu would you like to view?", reply_markup=reply_markup)
 
 #helper functions
-
+penis penis penis
 
 
 #running the shit
