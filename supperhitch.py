@@ -2,18 +2,21 @@ import asyncio
 import nest_asyncio
 from typing import Final
 from telegram import (Update, InlineKeyboardButton, InlineKeyboardMarkup)
-from telegram.ext import (Application, CallbackQueryHandler, CommandHandler,
+from telegram.ext import (Application, CallbackQueryHandler, CommandHandler, CallbackContext,
                           MessageHandler, filters, ContextTypes)
 from telegram.constants import ParseMode
 import requests
 
 nest_asyncio.apply()
 
-TOKEN: Final = '7239673940:AAFNjd09l_lAM-mMDott9YziiQBgIYJzR9E' # NEVER SHARE THIS PUBLICLY
+TOKEN: Final = '7239673940:AAG34wNYJ3wUmvfernb_0Bv5TzsaVvRqfTY' # NEVER SHARE THIS PUBLICLY
 BOT_USER: Final = 'SupperHitch_Bot'
 
 # List of Food Stores
 STORES_LIST: Final = ["Fong Seng", "AL Amaans"]
+
+#User Cart
+cart = []
 
 #commands
 async def start(update: Update, context : ContextTypes.DEFAULT_TYPE) -> None:
@@ -27,7 +30,36 @@ async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                                          f' this bot has.')
 
 async def viewcart(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    pass
+    if cart == []:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Cart is currently empty!")
+    else:
+        #cart_contents = "\n".join([f"{item['name']}: ${item['price']}" for item in cart])
+        message = f"Your Cart:\n{cart}"
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
+
+async def addcart(update: Update, context: CallbackContext) -> None:
+    args = context.args
+    if len(args) != 1:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Please do /add (item_id)")
+        return
+    
+    item_id = args[0]
+    #CHANGE THIS LATER
+    cart.append(item_id)
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Item {item_id} added to cart!")
+
+async def removecart(update: Update, context: CallbackContext) -> None:
+    args = context.args
+    if len(args) != 1:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Please do /add (item_id)")
+        return
+    remove_item = args[0]
+    if remove_item in cart:
+        cart.remove(remove_item)
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Item {remove_item} removed from cart!")
+    else:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Item {remove_item} is not in the cart.")
+
 
 async def stores(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     keyboard = [
@@ -50,9 +82,31 @@ async def stores(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     await update.message.reply_text(text="Which menu would you like to view?", reply_markup=reply_markup)
+    query = update.callback_query
+    callback_data = query.data
+    print(f"Received callback query with data:{callback_data}")
+    
+
 
 #helper functions
-penis penis penis
+async def store_button_click(update: Update, context: CallbackContext) -> None:
+    query = update.callback_query
+    if query:
+        # Acknowledge the callback
+        await query.answer()
+
+        # Get the callback data
+        callback_data = query.data
+        print(f"Received callback query with data: {callback_data}")
+        await print_menu(update, context, callback_data)
+    else:
+        print("No valid callback_query found.")
+
+async def print_menu(update: Update, context: CallbackContext, store):
+    if store == "Nana Thai":
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Showing Nana Thai Menu")
+    else:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Deez nutz")
 
 
 #running the shit
@@ -65,6 +119,11 @@ if __name__ == '__main__':
     app.add_handler(CommandHandler('start', start))
     app.add_handler(CommandHandler('help', help))
     app.add_handler(CommandHandler('stores', stores))
+    app.add_handler(CommandHandler('add', addcart))
+    app.add_handler(CommandHandler('remove', removecart))
+    app.add_handler(CommandHandler('viewcart', viewcart))
+    app.add_handler(CallbackQueryHandler(store_button_click))
+    
 
 
     # Message Handlers
